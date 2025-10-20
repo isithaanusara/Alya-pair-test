@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ALYA-MD</title>
+
+  <!-- fonts & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+  <style>
+    :root {
+      --accent1: #ff87d4;
+      --accent2: #d86aff;
+      --text: #fff;
+      --muted: rgba(255,255,255,0.78);
+    }
+
+    /* Reset & base */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body {
+      font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color: var(--text);
+      overflow:hidden;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      background:#120212;
+      position:relative;
+    }
+
+    /* Video background */
+    .video-container {
+      position:fixed;
+      inset:0;
+      z-index:0;
+      overflow:hidden;
+      pointer-events:none;
+      background: linear-gradient(180deg, rgba(10,6,12,0.35), rgba(12,6,18,0.45));
+    }
+    .video-container video {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      filter: saturate(1.05) contrast(1.05) brightness(0.9);
+    }
+    /* soft overlay to keep text readable */
+    .video-overlay {
+      position:absolute;
+      inset:0;
+      background: linear-gradient(180deg, rgba(18,3,10,0.25), rgba(8,4,12,0.25));
+      z-index:0;
+      pointer-events:none;
+    }
+
+    /* Floating hearts (global) */
+    .heart {
+      position: absolute;
+      bottom: -20px;
+      width: 18px;
+      height: 18px;
+      background: rgba(255, 105, 180, 0.95);
+      transform: rotate(45deg);
+      pointer-events: none;
+      filter: drop-shadow(0 6px 14px rgba(255,105,180,0.15));
+    }
+    .heart::before,
+    .heart::after {
+      content:'';
+      position:absolute;
+      width:18px;
+      height:18px;
+      background: rgba(255, 105, 180, 0.95);
+      border-radius:50%;
+    }
+    .heart::before { top:-9px; left:0; }
+    .heart::after { left:9px; top:0; }
+
+    @keyframes floatHearts {
+      0% { transform: translateY(0) rotate(45deg) scale(0.9); opacity: 1; }
+      100% { transform: translateY(-110vh) rotate(45deg) scale(1.25); opacity: 0; }
+    }
+
+    /* Main container (card) — slightly smaller and mobile-first */
+    .container {
+      z-index:2;
+      width: 92%;
+      max-width: 320px; /* smaller */
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border-radius: 18px;
+      padding: 44px 16px 20px;
+      text-align:center;
+      backdrop-filter: blur(10px) saturate(1.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 10px 30px rgba(10,6,12,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      position:relative;
+      overflow:visible;
+      margin-bottom: 48px;
+    }
+
+    /* Animated floating card shift */
+    @keyframes slideX {
+      0% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      100% { transform: translateX(-6px); }
+    }
+    .box {
+      animation: slideX 1.2s infinite alternate ease-in-out;
+    }
+
+    /* Avatar */
+    .avatar {
+      position:absolute;
+      top:-48px;
+      left:50%;
+      transform:translateX(-50%);
+      width:92px;
+      height:92px;
+      border-radius:50%;
+      overflow:hidden;
+      border:3px solid var(--accent1);
+      box-shadow: 0 6px 28px rgba(255, 100, 200, 0.28), 0 0 52px rgba(216,106,255,0.18);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      z-index:3;
+      animation: float 3.6s ease-in-out infinite;
+    }
+    .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    @keyframes float {
+      0%,100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, -6px); }
+    }
+
+    /* Title & subtitle */
+    h1 {
+      margin-top: 54px;
+      font-size:1.25rem;
+      font-weight:700;
+      letter-spacing:0.6px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    .sub {
+      margin-top:4px;
+      color: var(--muted);
+      font-size:0.86rem;
+    }
+    .instruction {
+      margin-top:12px;
+      font-size:0.68rem;
+      color: var(--muted);
+      text-transform:uppercase;
+      letter-spacing:0.7px;
+    }
+
+    /* Input / form */
+    form { margin-top:10px; width:100%; display:block; }
+    .input {
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.08);
+      color:var(--text);
+      font-size:0.95rem;
+      outline:none;
+    }
+    .input::placeholder { color: rgba(255,255,255,0.45); text-align:center; }
+    .input:focus { box-shadow: 0 6px 22px rgba(255,120,210,0.12); border-color: var(--accent1); }
+
+    .submit {
+      margin-top:12px;
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      font-weight:700;
+      font-size:0.95rem;
+      letter-spacing:0.08em;
+      border:none;
+      color:#fff;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      box-shadow: 0 10px 30px rgba(216,106,255,0.12);
+      cursor:pointer;
+    }
+    .submit:active{ transform:translateY(1px); }
+    .submit:hover{ filter:brightness(1.02); }
+
+    /* Controls row */
+    .controls { margin-top:10px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+    .btn-join {
+      background:#fff;
+      color:#2b0c2b;
+      padding:8px 14px;
+      border-radius:999px;
+      border:none;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .btn-clear {
+      background:transparent;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,0.14);
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    /* Loading spinner and pair output */
+    #loading-spinner { display:none; margin-top:8px; color:var(--muted); }
+    .fa-spinner { animation: spin 1.6s linear infinite; }
+    @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
+
+    #pair { margin-top:10px; font-size:0.95rem; color:var(--muted); }
+
+    /* Copyable code style */
+    #copy {
+      display:inline-block;
+      padding:8px 12px;
+      background: rgba(0,0,0,0.35);
+      color: var(--accent1);
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+      user-select:none;
+    }
+
+    /* Footer glow */
+    footer {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-align:center;
+      padding:6px 12px;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(255,135,212,0.06), rgba(216,106,255,0.04));
+      text-shadow: 0 0 6px rgba(255,150,210,0.12);
+      pointer-events:none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 18px rgba(216,106,255,0.06);
+      animation: footerGlow 3s ease-in-out infinite alternate;
+    }
+    @keyframes footerGlow {
+      from { text-shadow: 0 0 6px #ff9be5, 0 0 12px #ff69b4; opacity:0.9; }
+      to   { text-shadow: 0 0 10px #ff9be5, 0 0 18px #ff69b4; opacity:1; }
+    }
+
+    /* Responsive tweaks for larger screens */
+    @media (min-width:480px){
+      .container { max-width:360px; padding:54px 20px 26px; }
+      .avatar { width:96px; height:96px; top:-50px; }
+      h1 { font-size:1.35rem; }
+    }
+
+    /* Accessibility: focus outlines */
+    .input:focus, .submit:focus, .btn-join:focus, .btn-clear:focus, #copy:focus{
+      outline: 3px solid rgba(216,106,255,0.16);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Video background (your provided link plugged in) -->
+  <div class="video-container" aria-hidden="true">
+    <video autoplay loop muted playsinline>
+      <source src="https://files.catbox.moe/x2rwn4.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <div class="video-overlay"></div>
+  </div>
+
+  <!-- Main card -->
+  <main class="container box" role="main" aria-labelledby="title">
+    <div class="avatar" aria-hidden="true">
+      <img src="https://files.catbox.moe/wpofkd.jpg" alt="ALYA avatar">
+    </div>
+
+    <h1 id="title">ALYA-MD</h1>
+    <div class="sub">Support Team</div>
+    <div class="instruction">Enter your WhatsApp number with country code</div>
+
+    <form id="form" autocomplete="off" novalidate>
+      <input id="number" class="input" type="tel" inputmode="tel" placeholder="+9476066xxxx" aria-label="WhatsApp number with country code" />
+      <button id="submit" class="submit" type="submit" aria-label="Submit number">SUBMIT</button>
+    </form>
+
+    <div id="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+
+    <div id="pair" aria-live="polite"></div>
+
+    <div class="controls" aria-hidden="false">
+      <button class="btn-join" id="joinBtn" type="button">JOIN CHANNEL</button>
+      <button class="btn-clear" id="clearBtn" type="button">CLEAR</button>
+    </div>
+  </main>
+
+  <footer>© All rights Reserved | ALYA CODERS❤️‍🩹🪽 , WITH LOVE💓</footer>
+
+  <!-- axios (kept as CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+
+  <script>
+    // HEARTS generator (floating hearts)
+    (function floatingHearts(){
+      function createHeart(){
+        const h = document.createElement('div');
+        h.className = 'heart';
+        // give some variety to sizes/colors
+        const size = 12 + Math.random()*18;
+        h.style.width = size + 'px';
+        h.style.height = size + 'px';
+        h.style.left = (Math.random()*100) + 'vw';
+        h.style.bottom = (-20 - Math.random()*40) + 'px';
+        h.style.opacity = (0.6 + Math.random()*0.4);
+        const duration = 4000 + Math.random()*4500;
+        h.style.animationDuration = (duration/1000) + 's';
+        h.style.transform = 'rotate(45deg)';
+        document.body.appendChild(h);
+        // animate via CSS keyframes already defined
+        setTimeout(()=> h.remove(), duration + 300);
+      }
+      // create a few at start
+      for(let i=0;i<6;i++) setTimeout(createHeart, i*350);
+      // then periodic
+      setInterval(createHeart, 800);
+    })();
+
+    // Elements
+    const pairEl = document.getElementById('pair');
+    const submitBtn = document.getElementById('submit');
+    const numberInput = document.getElementById('number');
+    const loadingEl = document.getElementById('loading-spinner');
+    const clearBtn = document.getElementById('clearBtn');
+    const joinBtn = document.getElementById('joinBtn');
+
+    // Copy function for the 'CODE' display
+    async function Copy(){
+      const copyNode = document.getElementById('copy');
+      if(!copyNode) return;
+      const originalText = copyNode.innerText;
+      try {
+        // copy inner text but remove "CODE: " prefix if present
+        const txt = copyNode.innerText.replace(/^CODE:\s*/i, '').trim();
+        await navigator.clipboard.writeText(txt);
+        copyNode.innerText = '✔️ COPIED';
+        copyNode.style.color = 'white';
+        copyNode.style.background = 'linear-gradient(90deg,#ff87d4,#d86aff)';
+        setTimeout(()=> {
+          if(copyNode) {
+            copyNode.innerText = originalText;
+            copyNode.style = '';
+          }
+        }, 900);
+      } catch (err) {
+        console.warn('copy failed', err);
+      }
+    }
+
+    // Submit handler (keeps your backend logic: /code?number=)
+    async function handleSubmit(e){
+      e && e.preventDefault();
+      const raw = (numberInput.value || '').trim();
+      if(!raw){
+        pairEl.innerHTML = '<div style="color:#ffb3d9;font-weight:700">❗ Enter your WhatsApp number with country code.</div>';
+        numberInput.focus();
+        return;
+      }
+
+      // extract digits only
+      const digits = raw.replace(/[^0-9]/g, '');
+      // basic length check (min 9, typical whatsapp includes country code so adjust per your needs)
+      if(digits.length < 7){
+        pairEl.innerHTML = '<div style="color:#ffb3d9;font-weight:700">❗ Invalid number format. Please try again.</div>';
+        numberInput.focus();
+        return;
+      }
+
+      // show spinner + disable UI while request in-flight
+      loadingEl.style.display = 'block';
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.8';
+
+      try {
+        // prepare displayed number in input as +<digits> and set input to text
+        numberInput.type = 'text';
+        numberInput.value = '+' + digits;
+        numberInput.style.color = 'white';
+        numberInput.style.fontSize = '18px';
+
+        // call your server endpoint exactly as you gave: /code?number=
+        // NOTE: this will request current origin + /code route; ensure your server handles it.
+        const { data } = await axios.get(`/code?number=${encodeURIComponent(digits)}`, { timeout: 20000 });
+        const code = data && data.code ? data.code : null;
+
+        if(code){
+          pairEl.innerHTML = '<span id="copy" tabindex="0" role="button" onclick="Copy()" title="Click to copy">CODE: <span style="color:white;font-weight:700">' + String(code) + '</span></span>';
+        } else {
+          pairEl.innerHTML = '<div style="color:#ffb3d9;font-weight:700">❗ Service returned no code. Try again later.</div>';
+        }
+      } catch (err) {
+        console.error(err);
+        pairEl.innerHTML = '<div style="color:#ffb3d9;font-weight:700">❗ Error contacting service. Please try again later.</div>';
+      } finally {
+        loadingEl.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+      }
+    }
+
+    // wire up events
+    document.getElementById('form').addEventListener('submit', handleSubmit);
+    submitBtn.addEventListener('click', handleSubmit);
+
+    clearBtn.addEventListener('click', () => {
+      numberInput.type = 'tel';
+      numberInput.value = '';
+      numberInput.style.color = '';
+      numberInput.style.fontSize = '';
+      pairEl.innerHTML = '';
+      numberInput.focus();
+    });
+
+    joinBtn.addEventListener('click', () => {
+      // replace below with your actual channel link or logic
+      // example: window.open('https://chat.whatsapp.com/your-link','_blank');
+      alert('Join channel clicked — replace with your channel link.');
+    });
+
+    // expose Copy to global scope for inline onclick
+    window.Copy = Copy;
+
+    // optional: focus number input on load
+    setTimeout(()=> numberInput.focus(), 700);
+  </script>
+</body>
+</html>
